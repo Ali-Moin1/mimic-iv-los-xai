@@ -1,2 +1,17 @@
-# mimic-iv-los-xai
-Explainable ICU length-of-stay prediction using MIMIC-IV data, Random Forest, and SHAP interpretation.
+MIMIC-IV ICU Long-Stay Prediction with Explainable AI This project builds an explainable machine learning pipeline on the MIMIC-IV Clinical Database Demo to predict whether an ICU stay will be longer than 3 days, using demographic, admission, ICU stay, and early vital-sign features derived from the first 24 hours of care. The workflow combines structured EHR preprocessing, a Random Forest baseline, performance evaluation, and SHAP-based interpretation to support transparent healthcare AI rather than black-box prediction alone.
+
+Project objective The main goal is to predict prolonged ICU stay early enough to support resource planning and clinical decision-making while keeping the model interpretable for healthcare use. The notebook frames explainability as a core requirement, emphasizing transparency, trust, and reduced cognitive burden alongside predictive performance.
+
+Dataset The project uses the MIMIC-IV Clinical Database Demo 2.2, a small demonstration subset of MIMIC-IV suitable for prototyping and learning the schema before scaling to the full dataset. In the notebook, the core source tables loaded are patients, admissions, icustays, d_items, and chartevents, with reported shapes of 100 patients, 275 admissions, 140 ICU stays, 4,014 item definitions, and 668,862 charted events.
+
+Prediction task The target variable is longicustay, defined from ICU length of stay (los) as a binary label where stays longer than 3 days are marked as 1 and shorter stays are marked as 0. This makes the project a binary classification problem focused on operationally meaningful ICU duration risk.
+
+Feature engineering The pipeline merges ICU stays with patient- and admission-level information using subject_id and hadm_id, then converts relevant timestamp fields into datetime format before modeling. It selects common ICU vital-sign item IDs for heart rate, systolic blood pressure, diastolic blood pressure, mean blood pressure, respiratory rate, temperature, and oxygen saturation from d_items and chartevents.
+
+To represent early physiologic status, the notebook keeps measurements from the first 24 hours of ICU stay and aggregates them into summary statistics such as minimum, mean, and maximum values for each vital sign. The final modeling table combines these derived vital features with care unit, demographics, admission characteristics, and the target label.
+
+Modeling approach The notebook imports scikit-learn utilities for train/test splitting, imputation, evaluation metrics, and a RandomForestClassifier, which serves as the baseline model for the ICU long-stay task. This choice fits the project goal well because tree-based models can handle mixed clinical features and also work naturally with SHAP explanations for both global and local interpretation.
+
+Evaluation and visualization The notebook includes exploratory and evaluation outputs such as target distribution plots, ICU length-of-stay distribution, confusion matrix, ROC analysis, feature-importance visualization, and a correlation heatmap for vital features. The written interpretation in the notebook states that these visuals help describe cohort structure and baseline model behavior, but they do not fully explain individual predictions without an explainability method such as SHAP.
+
+Explainability with SHAP A central part of the project is the SHAP section, which is used to interpret the trained Random Forest model at both global and individual-patient levels. The notebook explains that SHAP summary, waterfall, and force-style explanations are intended to show how age, admission factors, care unit, and early vital signs push predictions toward longer or shorter ICU stays, aligning the project with transparent, clinician-facing AI principles.
