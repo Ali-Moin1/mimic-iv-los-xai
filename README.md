@@ -1,130 +1,167 @@
 # MIMIC-IV ICU Long-Stay Prediction with Explainable AI
 
-## Project Overview
+This project uses the MIMIC-IV Clinical Database Demo to build a small explainable machine learning pipeline for predicting whether an ICU stay is likely to last more than 3 days.
 
-This project builds an explainable machine learning pipeline using the MIMIC-IV Clinical Database Demo to predict whether an ICU stay will be longer than 3 days. The model uses demographic, admission, ICU stay, and early vital-sign features derived from the first 24 hours of care.
+The aim is not to build a clinical tool. The aim is to show how healthcare data can be cleaned, prepared, modelled, evaluated, and explained in a transparent way.
 
-The workflow combines structured EHR preprocessing, Random Forest modelling, performance evaluation, and SHAP-based interpretation to support transparent healthcare AI rather than black-box prediction alone.
+## Why I Built This
+
+In healthcare, a prediction is not useful if people cannot understand it. A model may give a risk score, but doctors, nurses, managers, or clinical teams still need to know what influenced that prediction.
+
+This project focuses on both:
+
+* model performance
+* model explainability
+
+The idea is to explore how AI could support planning and decision-making without replacing human judgement.
 
 ## Important Note
 
-This project uses the MIMIC-IV Clinical Database Demo, which is a small demonstration subset intended for research prototyping and learning the database schema. The results should not be interpreted as clinically valid or generalisable. The purpose of this project is to demonstrate an explainable AI workflow, not to build a deployable clinical prediction system.
+This project uses the MIMIC-IV Clinical Database Demo, which is a small demo version of the full MIMIC-IV dataset.
 
-## Project Objective
-
-The main goal is to explore how early predictive modelling could support ICU resource planning and clinical decision-making in principle, while highlighting the need for validation before real-world deployment.
-
-The notebook frames explainability as a core requirement, emphasizing transparency, trust, and reduced cognitive burden alongside predictive performance.
+Because of the small dataset size, the results are not clinically valid and should not be used for real-world medical decisions. This is a portfolio and learning project, not a deployable clinical prediction system.
 
 ## Dataset
 
-The project uses the MIMIC-IV Clinical Database Demo 2.2, a small demonstration subset of MIMIC-IV suitable for prototyping and learning the schema before scaling to the full dataset.
+Dataset used:
 
-The core source tables used are:
+* MIMIC-IV Clinical Database Demo 2.2
 
-- patients
-- admissions
-- icustays
-- d_items
-- chartevents
+Main tables used:
 
-Reported table sizes:
+* `patients`
+* `admissions`
+* `icustays`
+* `d_items`
+* `chartevents`
 
-- 100 patients
-- 275 admissions
-- 140 ICU stays
-- 4,014 item definitions
-- 668,862 charted events
+Approximate table sizes used in the notebook:
+
+* 100 patients
+* 275 admissions
+* 140 ICU stays
+* 4,014 item definitions
+* 668,862 charted events
 
 ## Prediction Task
 
-The target variable is `longicustay`, defined from ICU length of stay (`los`) as a binary label:
+The target variable is `longicustay`.
 
-- `1` = ICU stay longer than 3 days
-- `0` = ICU stay of 3 days or shorter
+It is created from ICU length of stay (`los`):
 
-This makes the project a binary classification problem focused on operationally meaningful ICU duration risk.
+* `1` = ICU stay longer than 3 days
+* `0` = ICU stay of 3 days or less
 
-## Feature Engineering
+This makes the task a binary classification problem.
 
-The pipeline merges ICU stays with patient-level and admission-level information using `subject_id` and `hadm_id`.
+## Features Used
 
-The notebook converts timestamp fields into datetime format before modelling.
+The project combines ICU stay information with patient and admission data.
 
-It selects common ICU vital-sign item IDs for:
+It also extracts early vital-sign data from the first 24 hours of ICU care, including:
 
-- heart rate
-- systolic blood pressure
-- diastolic blood pressure
-- mean blood pressure
-- respiratory rate
-- temperature
-- oxygen saturation
+* heart rate
+* systolic blood pressure
+* diastolic blood pressure
+* mean blood pressure
+* respiratory rate
+* temperature
+* oxygen saturation
 
-To represent early physiological status, the notebook keeps measurements from the first 24 hours of ICU stay and aggregates them into summary statistics such as minimum, mean, and maximum values for each vital sign.
+For each vital sign, simple summary features are created, such as:
 
-The final modelling table combines derived vital-sign features with care unit, demographic, admission, and target-label information.
+* minimum value
+* mean value
+* maximum value
 
-## Modelling Approach
+These features are then combined with demographic, admission, and ICU stay information for modelling.
 
-The project uses scikit-learn for preprocessing, train/test splitting, imputation, model training, and evaluation.
+## Model Used
 
-A `RandomForestClassifier` is used as the baseline model for ICU long-stay prediction.
+The project uses a Random Forest classifier as a baseline model.
 
-This model was selected because tree-based models can handle mixed clinical features and work naturally with SHAP explanations for both global and local interpretation.
+I used Random Forest because:
 
-## Evaluation and Visualisation
+* it works well with structured/tabular data
+* it can handle mixed clinical features
+* it gives useful feature importance outputs
+* it works well with SHAP for explainability
+
+## Evaluation
 
 The notebook includes:
 
-- target distribution plot
-- ICU length-of-stay distribution
-- confusion matrix
-- ROC analysis
-- feature-importance visualisation
-- correlation heatmap for vital features
+* target distribution
+* ICU length-of-stay distribution
+* confusion matrix
+* ROC curve
+* feature importance plot
+* correlation heatmap
 
-These visuals help describe cohort structure and baseline model behaviour, but they do not fully explain individual predictions without an explainability method such as SHAP.
+Accuracy alone is not enough for this type of problem, so the model is also reviewed using classification metrics and explainability outputs.
 
-## Explainability with SHAP
+## Explainability
 
-SHAP is used to interpret the trained Random Forest model at both global and individual-patient levels.
+SHAP is used to explain the model predictions.
 
-The SHAP explanations are intended to show how age, admission factors, care unit, and early vital signs push predictions toward longer or shorter ICU stays.
+The project looks at:
 
-This supports transparent, clinician-facing AI principles rather than relying only on model performance metrics.
+* global feature importance
+* how features influence the model overall
+* individual prediction explanations
+* which factors push a prediction towards a longer or shorter ICU stay
 
-## Relevance to Human-AI Decision-Making
+This is important because healthcare AI should not behave like a black box.
 
-This project is relevant to human-AI decision-making because ICU length-of-stay prediction is not only a technical classification task. In practice, prediction outputs may influence workload planning, bed management, escalation decisions, and communication between clinical teams.
+## Human-AI Decision-Making Angle
 
-For this reason, the model must be interpretable, uncertainty-aware, and presented in a way that supports rather than replaces professional judgement.
+This project links to human-AI decision-making because ICU length-of-stay prediction is not only a technical problem.
 
-The project therefore focuses on SHAP-based explanations and plain-language interpretation of model outputs, linking predictive performance with issues of trust, cognitive burden, and responsible use of AI in high-stakes healthcare environments.
+In a real setting, this type of prediction could affect:
+
+* bed planning
+* workload planning
+* escalation discussions
+* communication between clinical teams
+* trust in AI-supported systems
+
+The model should therefore support human judgement, not replace it.
+
+The project focuses on explainability, transparency, and responsible use of AI in high-stakes environments.
 
 ## Limitations
 
-This project is limited by the small size of the MIMIC-IV demo dataset. The results are not clinically generalisable and should not be used for real clinical decision-making.
+This project has several limitations:
 
-Further work would require:
+* the dataset is a small demo dataset
+* the model is not clinically validated
+* the results are not generalisable
+* the feature engineering is basic
+* no external validation has been done
+* no healthcare professionals have evaluated the outputs
 
-- validation on the full MIMIC-IV dataset
-- stronger clinical feature engineering
-- comparison with additional models
-- external validation
-- user-centred evaluation with healthcare professionals
+Future work could include:
 
-## Tools and Libraries
+* using the full MIMIC-IV dataset
+* testing more models
+* improving clinical feature engineering
+* adding uncertainty estimates
+* building a dashboard for human review
+* evaluating explanations with healthcare professionals
 
-- Python
-- pandas
-- NumPy
-- scikit-learn
-- matplotlib
-- seaborn
-- SHAP
-- Jupyter Notebook
+## Tools Used
+
+* Python
+* pandas
+* NumPy
+* scikit-learn
+* matplotlib
+* seaborn
+* SHAP
+* Jupyter Notebook
 
 ## Project Status
 
-This project is a proof-of-concept portfolio project demonstrating explainable AI for healthcare decision support.
+This is a proof of concept project for explainable healthcare AI.
+
+The main focus is not just prediction accuracy, but showing how AI predictions can be made easier to understand for human decision-making.
